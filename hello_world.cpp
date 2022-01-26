@@ -9,26 +9,33 @@
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void processInput(GLFWwindow *window);
 
-const char *vertexShaderSource = "#version 330 core\n"
+static const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
+static const char *fragmentShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\n\0";
 
+
+
 int main()
 {
     float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
-    };  // 3 vertices
+        0.5f,  0.5f, 0.0f,  
+        0.5f, -0.5f, 0.0f,  
+        -0.5f, -0.5f, 0.0f,  
+        -0.5f,  0.5f, 0.0f   
+    };
+    unsigned int indices[] = {  
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
+    };  
 
     // Initialize OpenGL
     glfwInit();
@@ -56,15 +63,20 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }    
+    std::cout << "Initialized GLAD" << std::endl;
 
-    // Set and bind Vertex Buffer Object & Vertex Array Object
+    // Set and bind Vertex Buffer Object & Vertex Array Object $ Element Buffer Object
     unsigned int VBO;
     unsigned int VAO;
-    glGenVertexArrays(1, &VAO);  
-    glBindVertexArray(VAO);
-    glGenBuffers(1, &VBO);  
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);  
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    unsigned int EBO;
+    glGenVertexArrays(1, &VAO);  // Generate Vertex Array Object
+    glGenBuffers(1, &VBO);  // Generate Vertex Buffer Object
+    glGenBuffers(1, &EBO);  // Generate Element Buffer Object
+    glBindVertexArray(VAO);  // Bind Vertex Array Object
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);  // Bind Vertex Buffer Object
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);  // Bind Element Buffer Object
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // Copy vertices to Vertex Buffer Object
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);  // Copy indices to Element Buffer Object
     std::cout << "VBO & VAO Set" << std::endl;
     
     // Create Shader and compile
@@ -114,13 +126,10 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0); 
 
-
     // Show Window
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
       
-    
-
     // Main Rendering Loop
     while(!glfwWindowShouldClose(window))
     {
@@ -133,7 +142,8 @@ int main()
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
 
 
