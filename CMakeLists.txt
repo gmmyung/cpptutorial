@@ -4,7 +4,7 @@ project(HELLOWORLD VERSION 1.0)
 
 configure_file(HELLOWORLDConfig.h.in HELLOWORLDConfig.h)
 
-add_executable(${PROJECT_NAME} hello_world.cpp)
+add_executable(${PROJECT_NAME} hello_world.cpp shader.h)
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_BINARY_DIR})
