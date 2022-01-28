@@ -6,7 +6,9 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <cmath>
-#include "shader.h"
+#include <shader.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void processInput(GLFWwindow *window);
@@ -15,24 +17,16 @@ static void initGLFW();
 
 int main()
 {
-    //colorless vertices
-    /*
     float vertices[] = {
-        0.5f,  0.5f, 0.0f,  
-        0.5f, -0.5f, 0.0f,  
-        -0.5f, -0.5f, 0.0f,  
-        -0.5f,  0.5f, 0.0f   
-    };*/
-
-    float vertices[] = {
-        // Position          // Color
-         0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    
-    };    
+        // 위치              // 컬러             // 텍스처 좌표
+        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   // 우측 상단
+        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,   // 우측 하단
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 1.0f,   // 좌측 하단
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 0.0f    // 좌측 상단
+    };  
     unsigned int indices[] = {  
-        0, 1, 2,   // first triangle
-        //1, 2, 3    // second triangle
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
     };  
 
     // Initialize OpenGL
@@ -71,44 +65,44 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);  // Copy indices to Element Buffer Object
     std::cout << "VBO & VAO Set" << std::endl;
 
-    char *vertexShaderPath = "shaders/vertex.glsl";
-    char *fragmentShaderPath = "shaders/fragment.glsl";
+    const char *vertexShaderPath = "shaders/vertex.glsl";
+    const char *fragmentShaderPath = "shaders/fragment.glsl";
     unsigned int shaderProgram;
     Shader ourShader(vertexShaderPath, fragmentShaderPath);
     
-    /*
-    // Compile Vertex Shader & Fragment Shader
-    unsigned int vertexShader;
-    unsigned int fragmentShader;
-    vertexShader = compileShader(vertexShaderSource, GL_VERTEX_SHADER);
-    fragmentShader = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
-    std::cout << "Compiled Vertex Shader & Fragment Shader" << std::endl;
+    // Load and create a texture from a file
+    unsigned int texture1;
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    // Shader Program
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    int  success;
-    char infoLog[512];
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    const char *imagePath = "textures/Joe_Biden_presidential_portrait.jpg";
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load(imagePath, &width, &height, &nrChannels, 0); 
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        std::cout << "Texture load Success!" << std::endl;
     }
-    glUseProgram(shaderProgram);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader); 
-    */
-
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+    
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // Show Window
     glfwMakeContextCurrent(window);
@@ -126,8 +120,6 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-
-
         ourShader.use();
         /*
         float timeValue = glfwGetTime();
@@ -136,10 +128,10 @@ int main()
         glUseProgram(shaderProgram);
         glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
         */
-
+        glBindTexture(GL_TEXTURE_2D, texture1);
         glBindVertexArray(VAO);
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 
         // Display Image (Swap Front/Back Buffer)
@@ -175,3 +167,4 @@ static void processInput(GLFWwindow *window)
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
+
