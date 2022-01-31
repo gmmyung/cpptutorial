@@ -18,6 +18,7 @@ static void processInput(GLFWwindow *window);
 static unsigned int compileShader(const char *ShaderPath, int options);
 static void initGLFW();
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 static Camera camera = Camera();
 
@@ -148,6 +149,7 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);    
+    glfwSetScrollCallback(window, scroll_callback); 
 
     // Main Rendering Loop
     while(!glfwWindowShouldClose(window))
@@ -168,7 +170,7 @@ int main()
         trans = glm::rotate(trans, glm::radians(float(glfwGetTime()) * 100), glm::vec3(1.0, 1.0, 0.0));
         trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));  
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(proj));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getView()));
         
         
@@ -213,3 +215,7 @@ static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
     camera.mouse_callback(window, xpos, ypos);
 }  
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.scroll_callback(window, xoffset, yoffset);
+}

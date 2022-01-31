@@ -18,6 +18,7 @@ private:
     float lastX = 400, lastY = 400; // last mouse position
     float cameraSpeed = 0.00f;
     bool firstMouse = true;
+    float fov = 45.0f;
 
 public:
     Camera(){};
@@ -86,8 +87,20 @@ public:
         front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
         cameraFront = glm::normalize(front);
     }  
+    void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+    {
+    if(fov >= 1.0f && fov <= 45.0f)
+        fov -= yoffset;
+    if(fov <= 1.0f)
+        fov = 1.0f;
+    if(fov >= 45.0f)
+        fov = 45.0f;
+    }
     glm::mat4 getView(){
         return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    }
+    glm::mat4 getProjection(){
+        return glm::perspective(glm::radians(fov), 800.0f / 800.0f, 0.1f, 100.0f);  
     }
 
 };
