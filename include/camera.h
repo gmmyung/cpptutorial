@@ -18,11 +18,10 @@ private:
     float lastX = 400, lastY = 400; // last mouse position
     float cameraSpeed = 0.00f;
     bool firstMouse = true;
-    GLFWwindow* window;
 
 public:
-    Camera(GLFWwindow* w){
-        window = w;
+    Camera(GLFWwindow* window){
+        GLFWwindow* window_ = window;
     }
     ~Camera();
     void setTime(){
@@ -31,7 +30,7 @@ public:
         lastFrame = currentFrame;
         cameraSpeed = 2.5f * deltaTime;
     }
-    void processInput(){
+    void processInput(GLFWwindow* window){
         setTime();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
             glfwSetWindowShouldClose(window, true);
