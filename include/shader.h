@@ -46,10 +46,10 @@ public:
         }
         const char* vShaderCode = vertexCode.c_str();
         const char* fShaderCode = fragmentCode.c_str();
-        // 2. compile shaders
+        // Compile shaders
         unsigned int vertex, fragment;
-        vertex = compileShader(vShaderCode, GL_VERTEX_SHADER);  // Compile Vertex Shader
-        fragment = compileShader(fShaderCode, GL_FRAGMENT_SHADER);  // Compile Fragment Shader
+        vertex = compileShader(vShaderCode, GL_VERTEX_SHADER);
+        fragment = compileShader(fShaderCode, GL_FRAGMENT_SHADER);
 
         // shader Program
         ID = linkShaderProgram(vertex, fragment);
