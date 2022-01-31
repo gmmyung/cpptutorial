@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <camera.h>
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void processInput(GLFWwindow *window);
@@ -18,14 +19,7 @@ static unsigned int compileShader(const char *ShaderPath, int options);
 static void initGLFW();
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-static glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
-static glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-static glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
-static float deltaTime = 0.0f;	// 마지막 프레임과 현재 프레임 사이의 시간
-static float lastFrame = 0.0f; // 마지막 프레임의 시간
-static float pitch = 0.0f;
-static float yaw = -90.0f;
-static float lastX = 400, lastY = 400;
+static Camera camera = Camera();
 
 int main()
 {
@@ -41,7 +35,6 @@ int main()
         glm::vec3( 1.5f,  0.2f, -1.5f), 
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
-
     float vertices[] = {
         // 위치              // 컬러             // 텍스처 좌표
         0.5f,  0.5f, 0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 우측 상단
@@ -67,25 +60,23 @@ int main()
         0, 3, 4,   // first triangle
         4, 3, 7    // second triangle
     };  
-
-
+    unsigned int VBO, VAO, EBO;
+    const char *vertexShaderPath = "shaders/vertex.glsl";
+    const char *fragmentShaderPath = "shaders/fragment.glsl";
+    unsigned int shaderProgram;
+    const char *imagePath = "textures/Joe_Biden_presidential_portrait.jpg";
+    unsigned int texture1;
+    int width, height, nrChannels;
+    unsigned int transformLoc, viewLoc, projectionLoc, modelLoc;
 
     // Define transformations
     glm::mat4 trans = glm::mat4(1.0f);
     trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
     trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));  
-
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-
-
-    //glm::mat4 view = glm::mat4(1.0f);
-    //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -4.0f)); 
-
-    glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
     // Initialize OpenGL
     initGLFW();
-    std::cout << "Initialized OpenGL" << std::endl;
 
     // Create Window
     GLFWwindow* window = glfwCreateWindow(800, 800, "LearnOpenGL", NULL, NULL);
@@ -96,8 +87,6 @@ int main()
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);    
 
      // GLAD configure
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -108,35 +97,23 @@ int main()
     std::cout << "Initialized GLAD" << std::endl;
 
     // Set and bind Vertex Buffer Object & Vertex Array Object $ Element Buffer Object
-    unsigned int VBO;
-    unsigned int VAO;
-    unsigned int EBO;
-    glGenVertexArrays(1, &VAO);  // Generate Vertex Array Object
-    glGenBuffers(1, &VBO);  // Generate Vertex Buffer Object
-    glGenBuffers(1, &EBO);  // Generate Element Buffer Object
-    glBindVertexArray(VAO);  // Bind Vertex Array Object
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);  // Bind Vertex Buffer Object
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);  // Bind Element Buffer Object
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  // Copy vertices to Vertex Buffer Object
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);  // Copy indices to Element Buffer Object
-    std::cout << "VBO & VAO Set" << std::endl;
-
-    const char *vertexShaderPath = "shaders/vertex.glsl";
-    const char *fragmentShaderPath = "shaders/fragment.glsl";
-    unsigned int shaderProgram;
+    glGenVertexArrays(1, &VAO);  
+    glGenBuffers(1, &VBO);  
+    glGenBuffers(1, &EBO);  
+    glBindVertexArray(VAO);  
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);  
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);  
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);  
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);  
     Shader ourShader(vertexShaderPath, fragmentShaderPath);
     
     // Load and create a texture from a file
-    unsigned int texture1;
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    const char *imagePath = "textures/Joe_Biden_presidential_portrait.jpg";
-    int width, height, nrChannels;
     unsigned char *data = stbi_load(imagePath, &width, &height, &nrChannels, 0); 
     if (data)
     {
@@ -161,26 +138,22 @@ int main()
     glEnableVertexAttribArray(2);
 
     // Get uniform location
-    unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-
-    unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-
-    unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-
-    unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-    
+    transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+    projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+    viewLoc = glGetUniformLocation(ourShader.ID, "view");
+    modelLoc = glGetUniformLocation(ourShader.ID, "model");
 
     // Show Window
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-      
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);    
+
     // Main Rendering Loop
     while(!glfwWindowShouldClose(window))
     {
         // User Input
-        processInput(window);
-
-        
+        camera.processInput(window);
 
         //Background Color
         glClearColor(1.0f, 1.0, 1.0f, 1.0f);
@@ -191,19 +164,12 @@ int main()
         ourShader.use();
 
         glBindVertexArray(VAO);
-        /*
-        float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
-        view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-        */
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         trans = glm::mat4(1.0f);
         trans = glm::rotate(trans, glm::radians(float(glfwGetTime()) * 100), glm::vec3(1.0, 1.0, 0.0));
         trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));  
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(proj));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getView()));
         
         
         
@@ -216,9 +182,6 @@ int main()
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
-        
-
-        //glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
         // Display Image (Swap Front/Back Buffer)
         glfwSwapBuffers(window);
@@ -242,59 +205,11 @@ static void initGLFW(){
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     #endif
 }
-
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }  
-
-static void processInput(GLFWwindow *window)
+static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    float currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;  // Update lastFrame
-    float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {std::cout << "Escape Key Pressed" << std::endl; glfwSetWindowShouldClose(window, true);}
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        {cameraPos += cameraSpeed * cameraFront; std::cout << "W Pressed" << std::endl;}
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-}
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    static bool firstMouse = true;
-    if(firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-  
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; 
-    lastX = xpos;
-    lastY = ypos;
-
-    float sensitivity = 0.05;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw   += xoffset;
-    pitch += yoffset;
-
-    if(pitch > 89.0f)
-        pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
+    camera.mouse_callback(window, xpos, ypos);
 }  

@@ -20,10 +20,8 @@ private:
     bool firstMouse = true;
 
 public:
-    Camera(GLFWwindow* window){
-        GLFWwindow* window_ = window;
-    }
-    ~Camera();
+    Camera(){};
+    ~Camera(){};
     void setTime(){
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
@@ -88,7 +86,7 @@ public:
         front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
         cameraFront = glm::normalize(front);
     }  
-    glm::mat4 view(){
+    glm::mat4 getView(){
         return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     }
 
