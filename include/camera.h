@@ -19,6 +19,8 @@ private:
     float cameraSpeed = 0.00f;
     bool firstMouse = true;
     float fov = 45.0f;
+    int windowWidth = 800;
+    int windowHeight = 600;
 
 public:
     Camera(){};
@@ -96,11 +98,17 @@ public:
     if(fov >= 45.0f)
         fov = 45.0f;
     }
+    void setWindowSize(int width, int height){
+        windowWidth = width;
+        windowHeight = height;
+    }
     glm::mat4 getView(){
         return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
     }
     glm::mat4 getProjection(){
-        return glm::perspective(glm::radians(fov), 800.0f / 800.0f, 0.1f, 100.0f);  
+        return glm::perspective(glm::radians(fov), float(windowWidth) / float(windowHeight), 0.1f, 100.0f);  
     }
-
+    glm::vec3 getCameraPos(){
+        return cameraPos;
+    }
 };

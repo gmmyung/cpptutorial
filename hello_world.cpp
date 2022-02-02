@@ -19,6 +19,7 @@ static unsigned int compileShader(const char *ShaderPath, int options);
 static void initGLFW();
 static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+static int initialWidth = 800, initialHeight = 600;
 
 static Camera camera = Camera();
 
@@ -36,6 +37,39 @@ int main()
         glm::vec3( 1.5f,  0.2f, -1.5f), 
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
+
+    float vertices[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f, -1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.0f, -1.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f, -1.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+    };
+    /*
     float vertices[] = {
         // 위치              // 컬러             // 텍스처 좌표
         0.5f,  0.5f, 0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 우측 상단
@@ -46,20 +80,20 @@ int main()
         0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 우측 하단
         -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 좌측 하단
         -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 좌측 상단
-    };  
+    };  */
     unsigned int indices[] = {  
-        0, 1, 3,   // first triangle
-        1, 2, 3,    // second triangle
-        4, 5, 7,   // first triangle
-        5, 6, 7,    // second triangle
-        0, 4, 1,   // first triangle
-        1, 5, 4,   // second triangle
-        2, 6, 7,   // first triangle
-        7, 3, 2,   // second triangle
-        2, 1, 6,   // first triangle
-        1, 5, 6,   // second triangle
-        0, 3, 4,   // first triangle
-        4, 3, 7    // second triangle
+        0, 1, 3,
+        1, 2, 3,
+        4, 5, 7, 
+        5, 6, 7,  
+        8, 9, 11,
+        9, 10, 11,
+        12, 13, 15,
+        13, 14, 15,
+        16, 17, 19,
+        17, 18, 19,
+        20, 21, 23,
+        21, 22, 23
     };  
     unsigned int VBO, VAO, EBO;
     const char *vertexShaderPath = "shaders/vertex.glsl";
@@ -69,20 +103,20 @@ int main()
     unsigned int texture1;
     int width, height, nrChannels;
     unsigned int transformLoc, viewLoc, projectionLoc, modelLoc;
+    unsigned int CGOLtexture;
 
     // Define transformations
     glm::mat4 trans = glm::mat4(1.0f);
     trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
     trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));  
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
 
     // Initialize OpenGL
     initGLFW();
 
     // Create Window
-    GLFWwindow* window = glfwCreateWindow(800, 800, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
-    {
+    GLFWwindow* window = glfwCreateWindow(initialWidth, initialHeight, "LearnOpenGL", NULL, NULL);
+    camera.setWindowSize(initialWidth, initialHeight);
+    if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
@@ -90,12 +124,10 @@ int main()
     glfwMakeContextCurrent(window);
 
      // GLAD configure
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
-    }    
-    std::cout << "Initialized GLAD" << std::endl;
+    }
 
     // Set and bind Vertex Buffer Object & Vertex Array Object $ Element Buffer Object
     glGenVertexArrays(1, &VAO);  
@@ -109,40 +141,55 @@ int main()
     Shader ourShader(vertexShaderPath, fragmentShaderPath);
     
     // Load and create a texture from a file
+    
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
     unsigned char *data = stbi_load(imagePath, &width, &height, &nrChannels, 0); 
-    if (data)
-    {
+    if (data){
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-        std::cout << "Texture load Success!" << std::endl;
     }
-    else
-    {
+    else{
         std::cout << "Failed to load texture" << std::endl;
+        return -1;
     }
     stbi_image_free(data);
     
+    /*
+    glGenTextures(2, &CGOLtexture);
+    glBindTexture(GL_TEXTURE_2D, CGOLtexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, initialWidth, initialHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    unsigned int testarray[5*5] = {
+        1, 0, 1, 0, 1,
+        0, 1, 0, 1, 0,
+        1, 0, 1, 0, 1,
+        0, 1, 0, 1, 0,
+        1, 0, 1, 0, 1
+    };
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 5, 5, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, testarray);
+    */
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     // texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
+    // normal attribute
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
+    glEnableVertexAttribArray(3);
 
-    // Get uniform location
-    transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-    projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-    viewLoc = glGetUniformLocation(ourShader.ID, "view");
-    modelLoc = glGetUniformLocation(ourShader.ID, "model");
 
     // Show Window
     glfwMakeContextCurrent(window);
@@ -150,7 +197,8 @@ int main()
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);    
     glfwSetScrollCallback(window, scroll_callback); 
-
+    ourShader.setVec3("lightPos", glm::vec3(2.0, 2.0, 2.0));
+    ourShader.setVec3("lightColor", glm::vec3(1.0, 1.0, 1.0));
     // Main Rendering Loop
     while(!glfwWindowShouldClose(window))
     {
@@ -158,7 +206,7 @@ int main()
         camera.processInput(window);
 
         //Background Color
-        glClearColor(1.0f, 1.0, 1.0f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);  // Enable depth test
@@ -169,18 +217,20 @@ int main()
         trans = glm::mat4(1.0f);
         trans = glm::rotate(trans, glm::radians(float(glfwGetTime()) * 100), glm::vec3(1.0, 1.0, 0.0));
         trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));  
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjection()));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getView()));
-        
-        
+        ourShader.setMat4("transform", trans);
+        ourShader.setMat4("projection", camera.getProjection());
+        ourShader.setMat4("view", camera.getView());
+        ourShader.setVec3("lightPos", glm::vec3(0.0, -2.0, 0.0));
+        ourShader.setVec3("lightColor", glm::vec3(1.0, 0.5, 0.5));
+        ourShader.setVec3("viewPos", camera.getCameraPos()); 
+        ourShader.setVec3("ambientLightColor", glm::vec3(1.0, 1.0, 1.0));
         
         for(unsigned int i = 0; i < 10; i++){
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * i; 
             model = glm::rotate(model, glm::radians(angle + float(glfwGetTime()) * 100), cubePositions[i]);
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+            ourShader.setMat4("model", model);
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
         }
@@ -207,15 +257,13 @@ static void initGLFW(){
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     #endif
 }
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     glViewport(0, 0, width, height);
+    camera.setWindowSize(width, height);
 }  
-static void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
+static void mouse_callback(GLFWwindow* window, double xpos, double ypos){
     camera.mouse_callback(window, xpos, ypos);
 }  
-static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
     camera.scroll_callback(window, xoffset, yoffset);
 }
